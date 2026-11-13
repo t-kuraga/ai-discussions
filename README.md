@@ -73,7 +73,7 @@ Versions/
 
 | Topic | Status | Latest version |
 |---|---|---|
-| Is *AI Coding: The Case for Guided Autonomy* right? | Initial Version | *pending* |
+| Is *AI Coding: The Case for Guided Autonomy* right? | Position and implications accepted (2026-11-12); article rewrite in progress | *pending* |
 
 ## Contributing
 
