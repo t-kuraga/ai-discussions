@@ -2,7 +2,7 @@
 
 An open, evidence-based discussion of claims that AI will make understanding code, maintaining code, or source code itself unnecessary, using the document *AI Coding: The Case for Guided Autonomy* (GA) as the starting point. The discussion settles each claim in a strong and a weak version, records the replies and their evidence, and states a position with implications for practice. It is meant to keep growing: new evidence and re-measurements are added with dates.
 
-**Opened:** 2026-11-12 · **Status:** position and implications accepted (§5.1, §6); GA rewritten (v1.0, 2026-11-13); open to new evidence · **Owner:** Andrés Gómez
+**Opened:** 2026-11-12 · **Status:** position and implications accepted (§5.1, §6); GA rewritten (v1.0, 2026-11-13) and restructured (v1.1, 2026-11-18); open to new evidence · **Owner:** Andrés Gómez
 
 ## 0. Context
 
@@ -334,7 +334,7 @@ All sources, with verification status and key figures, are in [guided_autonomy_r
 
 **Claim verdicts.** A-strong: not supported · A-weak: supported as a design, under three conditions, with coding knowledge concentrated · B-strong: not supported today, open as a trend · B-weak: supported with a harness, at an ongoing cost · C-strong: not supported, unlikely for lack of motive · C-weak: supported but secondary · Marginal-returns rule: supported as a framework, this discussion's own, open.
 
-**GA document.** Rewritten as a balanced evidence brief following §3b and §5.1: v1.0, 2026-11-13.
+**GA document.** Rewritten as a balanced evidence brief following §3b and §5.1: v1.0, 2026-11-13. Restructured so the evidence leads to the verdicts: v1.1, 2026-11-18.
 
 **Sources.** N1–N54 plus B, C and A-series entries in [guided_autonomy_references.md](guided_autonomy_references.md). Partly second-hand or corrected: N5, N12, N13, N19, N22, N50, N53, N54.
 
@@ -343,6 +343,27 @@ All sources, with verification status and key figures, are in [guided_autonomy_r
 ## 11. GA version history
 
 The article is kept readable on its own and describes only the current state. Its change history lives here.
+
+### v1.1 (2026-11-18): restructured around how outcomes are judged
+
+v1.0 listed findings by type of evidence (productivity, scale, efficiency, code health, maintenance, humans, review, IR) and stated verdicts by claim, without showing how one led to the other. v1.1 adds a frame: outcomes are never judged directly but through **instruments** (tests, types, budgets, standards gates, checkers, sampled review), and trusting them requires *coverage*, *construction* by people who read code, and someone covering the *residual*. Each claim is restated as a question about the instruments, and the evidence is regrouped into numbered steps (subsections §2.1–§4.3, numbered so they cannot be confused with source IDs such as B1 or C1) that end in the verdict. No figures, sources or verdicts changed.
+
+| v1.1 § | Content | From v1.0 § | Traces to |
+|---|---|---|---|
+| 1 | Frame: how outcomes are judged; three conditions; claims as questions about instruments | 1 (perceived productivity), new framing | S2, RM1, ST4, SL5 |
+| 2.1 | Judgement is only as good as the instruments: under-specified outcomes, reward hacking, verifier, tests formalise intent | 3 (part), 8 (N33), 9 (N49) | RM3a, N12, N33, N49 |
+| 2.2 | People who read code build and audit instruments: leaky abstractions, standards gates, DORA amplifier | 3 (part), 4 | RM1, RM2, B6, B12, C3, B13 |
+| 2.3 | Instruments leave a residual; review is being dropped; review saturates | 5 (C1, C2), 6 (oversight), 7 | SL3, RM3b, N23, N24, N50 |
+| 2.4 | Skill decays when unused; concentration and demand | 6 | SL4, RA7, RA8 |
+| 3.1–3.3 | Regeneration needs instruments; harness is an ongoing cost; no full-cost data | 2, 5, 10 (N14, N15), 11 | SL2, RB2, RB6 |
+| 4.1–4.3 | Models and instruments work worse without source; precision has to live somewhere | 8 | §2b R1–R11 |
+| 5 | Marginal rule, framed as "instruments first" | 9 | RM3a–RM3c |
+| 6 | Earned autonomy; each practice tied to the step it answers | 10 | §6 I1–I12 |
+| 7 (new) | Verdict trace: verdict, supporting steps, what would change it | — | §3b; ground rule 4 |
+| 8, 9 | What the evidence does not show; conclusion restated as the chain of steps | 11, 12 | §3, §5.1 |
+| Charts | Same 20 charts, regrouped; one new flowchart for the instrument loop (no figures) | — | — |
+
+Section references to GA in §1–§10 of this discussion refer to the GA version current when they were written.
 
 ### v1.0 (2026-11-13): rewritten as a balanced evidence brief
 
