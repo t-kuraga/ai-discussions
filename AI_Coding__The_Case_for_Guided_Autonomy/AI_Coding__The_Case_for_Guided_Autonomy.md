@@ -1,5 +1,5 @@
 # AI Coding: The Case for Guided Autonomy
-### An Evidence Brief · v1.0 (2026-11-13)
+### An Evidence Brief · v1.1 (2026-11-18)
 
 > This brief is part of an open discussion and is updated as the evidence changes. The accompanying **discussion** file records how each claim was tested, and the history of this document. The **references** file catalogues every source with its verification status. Reference numbers in brackets below, e.g. [N23], are the stable IDs used there.
 
@@ -7,7 +7,7 @@
 
 Autonomy in AI-assisted software engineering should be an **output** of a structured process, earned through verifiers, standards, sandboxes and progressive trust. It should not be an input assumed from the start.
 
-Understanding code stops being required for **every diff**, but stays required for the **system**. It concentrates rather than disappears: fewer people and fewer parts of the process need it, and where it is needed, the depth required does not fall. How much developer effort a change deserves is a **marginal decision**. It depends on the expected cost of an escaped bug, the constraints that bind, and the price of tokens versus developer time, not on a fixed rule or the size of the codebase.
+Nobody judges an outcome directly. Outcomes are judged through **instruments**: tests, types, budgets, standards gates, checkers and sampled review. Those instruments are built, audited and completed by people who can read code. So understanding code stops being required for **every diff**, but stays required for the **system**. It concentrates rather than disappears: fewer people and fewer parts of the process need it, and where it is needed, the depth required does not fall. How much developer effort a change deserves is a **marginal decision**. It depends on the expected cost of an escaped bug, the constraints that bind, and the price of tokens versus developer time, not on a fixed rule or the size of the codebase.
 
 ## The claims under test
 
@@ -19,11 +19,13 @@ This brief answers three claims heard in debates about AI coding. Each is tested
 | **B.** Regenerating a project with AI will be cheaper than maintaining it | True for a typical product codebase | True for small, well-specified, well-tested scopes and mechanical migrations | **Strong: not supported today**, open as a trend. **Weak: supported with a harness**, which is an ongoing cost |
 | **C.** Source code will disappear; AI will emit intermediate representations (bytecode, IL) directly | Source languages are no longer written or stored | Source becomes a generated layer nobody edits by hand | **Strong: not supported**, and unlikely for lack of motive. **Weak: supported but secondary** |
 
-Capability is rising fast, so these verdicts describe **today**. They are re-measured on a fixed cadence (§10).
+Capability is rising fast, so these verdicts describe **today**. They are re-measured on a fixed cadence (§6). Section 1 sets out the frame that connects the evidence to these verdicts; sections 2–4 take one claim each; section 7 traces every verdict back to its steps.
 
 ---
 
-## 1. Perceived productivity is unreliable
+## 1. How outcomes are judged
+
+Claim A says developers should judge **outcomes**, not code. But an outcome is never observed directly, not even by the people who produced it.
 
 A randomised controlled trial with 16 experienced open-source developers (246 tasks, early-2025 tools) found that AI tools made them **19% slower** (95% CI +2% to +39%). The developers expected a 24% speedup beforehand and still believed in a 20% speedup afterwards. Expert forecasters predicted 38–39% [B1].
 
@@ -35,6 +37,7 @@ A randomised controlled trial with 16 experienced open-source developers (246 ta
 | Expert forecasts | 38–39% faster |
 
 ```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
 xychart-beta
     title "Change in completion time with AI (%; negative = faster) [B1]"
     x-axis ["Measured", "Devs expected", "Devs believed after", "Expert forecasts (low end)"]
@@ -44,57 +47,48 @@ xychart-beta
 
 A 2026 follow-up (57 developers, 800+ tasks) pointed toward a **speedup**: −18% time for returning developers, though not statistically significant (CI −38% to +9%), and −4% for new developers. METR judges this signal unreliable, because developers increasingly decline to work without AI [B2].
 
-**What this supports:** productivity must be measured, not perceived. On its own it says nothing about whether humans need to understand code.
+The direction of the effect is not the point here. The point is that experienced developers misjudged an outcome as simple as their own speed by about 40 points. Outcomes judged by impression are not reliable; they have to be **measured**, and measuring requires instruments.
 
-## 2. Unguided agents fail on large codebases; guided ones succeed
-
-On repository modernisation, fully autonomous agents passed **91.3%** of tests on repositories under 10K LOC, but only **15.3%** above 50K LOC. The authors call this a "scaling collapse" [B3, preprint]. A JDK 8→17 migration benchmark found the best agent migrated **52.3%** of 228 projects, and the authors highlight reward hacking [N12].
+**The instruments.** What an agent delivers is the code **plus the evidence that it is correct**: tests that pass, types that check, performance and memory budgets met, standards gates passed, formal checks where they exist, and human review of a sample. That evidence is only as good as the instruments that produced it.
 
 ```mermaid
-xychart-beta
-    title "Unguided agents on repository-scale work (% success)"
-    x-axis ["RepoMod <10K LOC [B3]", "RepoMod >50K LOC [B3]", "JDK 8→17, best agent [N12]"]
-    y-axis "% success" 0 --> 100
-    bar [91.3, 15.3, 52.3]
+flowchart LR
+    AG["Agent"] --> OUT["Output: code"]
+    OUT --> INS["Instruments<br/>tests · types · budgets ·<br/>standards gates · checkers"]
+    INS --> DEC{{"Trusted?"}}
+    DEC -- "covered by instruments" --> SHIP["Accept"]
+    DEC -- "residual, or a constraint binds" --> REV["A human reads the code"]
+    DEV["People who read code"] -- "design, approve, audit" --> INS
+    DEV --> REV
 ```
 
-Only the two RepoMod size bands reported in the paper's abstract are shown.
+So "judge outcomes, not code" really means "**trust the instruments** instead of reading the code". That is sound only under three conditions:
 
-Two qualifications matter:
+1. **Coverage.** The instruments check what matters. An outcome nobody specified is an outcome nobody checked.
+2. **Construction.** Someone can build and audit the instruments. A test suite is code; so is a budget or a lint rule. And agents game the checks they are given.
+3. **Residual.** Someone handles what the instruments miss, through review, and reads the code when a constraint binds.
 
-- **These are unguided agents.** Every documented large-scale success had a heavy harness:
-  - **Google:** about 80% of changes in one migration were AI-authored, and engineers estimated about 50% time saved. Changes were kept only if they built and passed tests, with expert review, and review capacity was the bottleneck [N3].
-  - **Airbnb:** migrated about 3,500 test files in roughly 6 weeks, against a 1.5-year manual estimate. They used per-file validation and retry loops, and finished the last files by hand [N4].
-- **The boundary is moving.** METR's measure of task length that agents complete at 50% success doubled about every 7 months (2019–2025), and about every 89 days since 2024 [N1]. On the harder SWE-Bench Pro, top public scores rose from about 23% at release to 52–62% within a year. Private code scores lower, and scores on the easier SWE-bench Verified exceed 70% [N6]. These figures are at 50% reliability; 80% horizons are much shorter.
+Each claim reduces to a question about these conditions:
 
-```mermaid
-xychart-beta
-    title "METR: doubling time of the 50% task horizon (days, lower = faster) [N1]"
-    x-axis ["Fit on 2019–2025 (≈196)", "Fit since 2023", "Fit since 2024"]
-    y-axis "Days to double" 0 --> 220
-    bar [196, 130.8, 88.6]
-```
+- **Claim A** (§2): can instruments replace reading code, and who builds them and covers what they miss?
+- **Claim B** (§3): can instruments certify a regenerated project more cheaply than maintaining it?
+- **Claim C** (§4): can the instruments, and the people and models using them, work without source code?
 
-```mermaid
-xychart-beta
-    title "SWE-Bench Pro, public set: top score (%) [N6]"
-    x-axis ["At release (Sep 2025, GPT-5)", "2026 public leaderboard (top entry, ±3.1)"]
-    y-axis "% resolved" 0 --> 100
-    bar [23.3, 61.5]
-```
+---
 
-At release, the commercial (private) set's top score was 17.8%. No current commercial-set score is published. The 2026 leaderboard is undated and uses a different agent harness (mini-swe-agent), so the two bars are not a strict like-for-like comparison.
+## 2. Claim A: can instruments replace reading code?
 
-**What this supports:** claim B in its strong form fails *today* for unguided agents. Claim B in its weak form holds *with a harness*. Thresholds such as "50K LOC" are snapshots, not constants.
+The argument runs in four steps. §2.1 shows that judging outcomes works only as far as the instruments reach. §2.2 and §2.3 show that building the instruments and covering what they miss both need people who read code. §2.4 shows that this ability decays when people stop using it.
 
-## 3. Under-specified outcomes fail
+### 2.1 Judgement is only as good as the instruments
 
-Default AI solutions are often inefficient:
+Where an outcome is not specified, it is not checked, and default AI solutions fail on it:
 
 - GPT-4 code averaged **3.12×** the execution time of human reference solutions on algorithmic tasks, with worst cases of 13.89× time and 43.92× memory [B4].
 - Across six languages, the best model reached about **62%** of human efficiency, and the gap is largest in **Java, C++ and Go** [B5].
 
 ```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
 xychart-beta
     title "EffiBench: GPT-4 code vs. human reference (× human, lower = better) [B4]"
     x-axis ["Execution time, average", "Execution time, worst case", "Memory, worst case"]
@@ -102,13 +96,23 @@ xychart-beta
     bar [3.12, 13.89, 43.92]
 ```
 
-This is often read as "outcome-only evaluation fails". The better reading is that **under-specified outcomes fail**. Efficiency is an outcome and can be tested with performance and memory budgets in CI.
+This is often read as "outcome-only evaluation fails". The better reading is that **under-specified outcomes fail**. Efficiency is an outcome too, and a performance and memory budget in CI turns it into an instrument.
 
-The deeper point is about abstractions. "All non-trivial abstractions, to some degree, are leaky" [N46]. Developers ignore the SQL an ORM generates until performance matters. Then they must read it, and fixing ORM performance anti-patterns has improved response time by up to 98% in the best case [N47]. Agent-generated code behaves the same way, with one difference: an ORM is shared, standard and tested by millions, while generated code is new every time. It earns comparable trust only to the extent that **enforced standards** constrain it. Even then, it must be read when performance, memory, security or maintainability constraints bind.
+Instruments also fail when the agent can reach them. On a JDK 8→17 migration benchmark, the authors highlight **reward hacking**: agents satisfying the check rather than the intent [N12]. Instruments therefore have to be written or approved before the agent runs, and protected from its edits.
 
-## 4. Code-health signals: real, but correlational
+Where instruments are good, they are what makes generation pay:
+- Sampling 250 times raises the share of tasks with *some* correct solution from 15.9% to 56%, but turning that coverage into fixes needs a **verifier** to pick the right sample [N49] (chart in §5).
+- Natural-language intent becomes reliable once tests formalise it: letting users approve generated tests adds **46 pp** pass@1 within five interactions [N33].
 
-GitClear's analysis of 623M changed lines (2023–2026) reports [B6]:
+**Step result:** outcome judgement is exactly as strong as instrument **coverage**. This establishes condition 1, and shows that when coverage is in place, review can move from the diff to the instruments, which is what claim A-weak proposes.
+
+### 2.2 People who read code build and audit the instruments
+
+Instruments do not appear by themselves. Three kinds of evidence show that building them needs code understanding.
+
+**Abstractions leak where constraints bind.** "All non-trivial abstractions, to some degree, are leaky" [N46]. Developers ignore the SQL an ORM generates until performance matters. Then they must read it, and fixing ORM performance anti-patterns has improved response time by up to 98% in the best case [N47]. Agent-generated code behaves the same way, with one difference: an ORM is shared, standard and tested by millions, while generated code is new every time and has no reputation to trust. It earns comparable trust only to the extent that **enforced standards** constrain it. Even then, it must be read when performance, memory, security or maintainability constraints bind, because that is where a budget is tight and a human has to see why.
+
+**Without standards gates, code health degrades.** Standards gates (lint, architecture rules, complexity and duplication limits) are instruments for maintainability. The evidence below shows what happens when they are missing. GitClear's analysis of 623M changed lines (2023–2026) reports [B6]:
 
 | Signal | Baseline | 2026 | Change |
 |---|---|---|---|
@@ -119,6 +123,7 @@ GitClear's analysis of 623M changed lines (2023–2026) reports [B6]:
 | Two-week churn | ~16% | ~19% | +15% |
 
 ```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
 xychart-beta
     title "GitClear code-health signals: baseline (first bar) vs. 2026 (second bar) [B6]"
     x-axis ["Refactored %", "Copy-paste %", "Duplicated blocks /M lines", "Legacy maintenance %"]
@@ -132,6 +137,7 @@ These are vendor figures without a disclosed AI-attribution method. GitClear its
 A study of open-source projects adopting Cursor found **+281% lines added** in the first month. The gain was significant only in the first two months, while static-analysis warnings (+30%) and code complexity (+42%) persisted [B12].
 
 ```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
 xychart-beta
     title "After adopting Cursor: short-lived speed, lasting complexity (% change) [B12]"
     x-axis ["Lines added, month 1", "Commits, month 1", "Static-analysis warnings (persistent)", "Code complexity (persistent)"]
@@ -139,38 +145,31 @@ xychart-beta
     bar [281.3, 55.4, 30.3, 41.6]
 ```
 
-Balance:
+**Teams with strong instruments benefit; others don't.**
 - **DORA 2024:** each 25% increase in AI adoption was associated with **+3.4% code quality**, +7.5% documentation quality and +3.1% review speed, alongside −1.5% delivery throughput and −7.2% delivery stability [C3].
 
 ```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
 xychart-beta
     title "DORA 2024: estimated effect of +25% AI adoption (%) [C3]"
     x-axis ["Code quality", "Documentation quality", "Code review speed", "Delivery throughput", "Delivery stability"]
     y-axis "% change" -10 --> 10
     bar [3.4, 7.5, 3.1, -1.5, -7.2]
 ```
-- **DORA 2025:** AI acts as an **amplifier**. It improves throughput, while gains go to teams with fast feedback and loosely coupled architecture, and delivery instability still rises [B13].
+- **DORA 2025:** AI acts as an **amplifier**. It improves throughput, while gains go to teams with **fast feedback** and loosely coupled architecture, and delivery instability still rises [B13]. Fast feedback is another name for good instruments.
 
-**What this supports:** unguided adoption produces short-lived speed and lasting complexity. That is an argument for **readability and standards gates**, which are themselves outcome checks. It is not an argument for line-by-line human review of everything.
+**Step result:** instruments are code and design decisions, and they leak where constraints bind. Building, approving and auditing them needs people who read code. This establishes condition 2. It argues for **standards gates and budgets**, not for line-by-line review of everything.
 
-## 5. Maintaining agent-written code
+### 2.3 Instruments leave a residual, and review is what covers it
 
-- Agents resolve up to **13.1%** fewer tasks when building on agent-written code than on human-written code. Behavioural signals explained the gap (input validation, error handling, code size); traditional maintainability metrics did not [B7].
-- **83.21%** of commits to AI-generated files were made by humans (1,284 of 1,543) [B8]. This measures current practice, not capability.
+No instrument set covers everything. What remains is covered by human review, so the question is whether review still works.
 
-```mermaid
-pie showData
-    title "Who commits to AI-generated files (1,543 commits) [B8]"
-    "Humans" : 1284
-    "Agents" : 259
-```
-- Building on an agent's own history lowered later resolution by **5.6 pp** on average, and by 14.0 pp when all prior tests had to pass (1,996 paired events, preprint) [B9].
-
-Counter-evidence:
+**How large is the residual?** It depends on the agent and the process, not on "AI versus human":
 - Across 201 projects, agent-authored lines were modified **less** often than human lines, and variation *between agents* exceeded the agent–human gap [C1].
 - Across 37,623 PRs, revert rates ranged from 6.1% to 14.5% by agent against 11.5% for humans, and agent code was **less** likely to contain security smells (OR 0.63) [C2].
 
 ```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
 xychart-beta
     title "Post-merge revert rate, agents vs. humans (%) [C2]"
     x-axis ["Best agent", "Human baseline", "Worst agent"]
@@ -178,26 +177,46 @@ xychart-beta
     bar [6.1, 11.5, 14.5]
 ```
 
-**What this supports:** outcomes depend on the agent and the process more than on "AI versus human". Agent and model choice should be evaluated per repository.
+**Review is being dropped, not restructured.** Claim A-weak assumes review *moves* from every diff to instruments and sampling. Current practice shows something else. In vendor telemetry from about 22,000 developers, high-AI-adoption periods saw [N23]:
 
-## 6. The human side: what happens when people stop reading code
-
-Claim A is about people, not agents, so evidence on people answers it most directly. Most debates about it cite agent benchmarks instead.
-
-- **Skill formation.** In an RCT (n=52, mostly junior developers learning a new library), those using AI assistance scored **50% vs. 67%** on comprehension (d=0.74). The largest gap was on **debugging**, with no significant speed gain. Delegation-style use scored lowest, and conceptual inquiry preserved learning [N2].
+- median time in review **+441%**;
+- PRs merged with **no review at all +31%**;
+- bugs per developer +54%;
+- incidents per PR +243%.
 
 ```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
+xychart-beta
+    title "High- vs. low-AI-adoption periods (% change; vendor telemetry) [N23]"
+    x-axis ["Median time in review", "Incidents per PR", "Bugs per developer", "PRs merged with no review"]
+    y-axis "% change" 0 --> 500
+    bar [441.5, 242.7, 54, 31.3]
+```
+
+In 2025, high-adoption teams merged 98% more PRs with 154% larger PRs and 91% longer review time, and showed no company-level gain [N24].
+
+**Review itself saturates.** Its effectiveness falls with size: a vendor study recommends reviewing 200–400 LOC in 60–90 minutes [N50]. Oversight also erodes under volume: developers approve 93% of agent permission prompts [A4-alt2], and automation bias is well documented across domains [A5].
+
+**Step result:** the residual is real and varies by agent, so condition 3 cannot be skipped. Today review is being skipped without new instruments in its place, and incidents rise. Reviewing less than every diff is viable only as **structured sampling** (randomised, logged, with conditions), with changes under review kept small.
+
+### 2.4 People who stop reading code lose the ability to read it
+
+Building the instruments (§2.2) and reviewing what they miss (§2.3) both rely on people who can read code. If those people stop reading code, does that ability last? Claim A is about people, so evidence on people answers it most directly, yet most debates about it cite agent benchmarks instead.
+
+- **Skill formation.** In an RCT (n=52, mostly junior developers learning a new library), those using AI assistance scored **50% vs. 67%** on comprehension (d=0.74). The largest gap was on **debugging**, which is the skill needed when an instrument fails, and there was no significant speed gain. Delegation-style use scored lowest, and conceptual inquiry preserved learning [N2].
+
+```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
 xychart-beta
     title "Comprehension quiz after learning a new library (% score) [N2]"
     x-axis ["Learned by hand", "Learned with AI assistance"]
     y-axis "% score" 0 --> 100
     bar [67, 50]
 ```
-- **Over-confidence.** Novices using generative AI develop an "illusion of competence" [N45].
+- **Over-confidence.** Novices using generative AI develop an "illusion of competence" [N45], which undermines exactly the judgement of *when* to distrust the instruments.
 - **Expertise is not substituted.** Programming experience improved code security, and AI assistance did not replace it (n=159) [N43]. Reviewer experience predicts catching defects [N42]. Agent success rises from 15% for novices to 28–33% for intermediate users and above [N41].
-- **Oversight degrades.** Developers approve 93% of agent permission prompts [A4-alt2], and automation bias is well documented across domains [A5].
 
-The evidence also shows **where** the skill is needed:
+The evidence also shows **how much** skill is needed:
 - The usefulness of review comments plateaus after about a year of experience [N42].
 - The gap from intermediate to expert agent users is modest [N41].
 
@@ -208,6 +227,7 @@ The asset is competence in the domain and codebase, which arrives fairly early, 
 - Senior roles were **69.3%** of software postings in Q1 2026, against 4.5% entry-level [N44].
 
 ```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
 xychart-beta
     title "Software development job postings by seniority, Q1 2026 (% of postings) [N44]"
     x-axis ["Senior", "Entry-level"]
@@ -217,91 +237,174 @@ xychart-beta
 
 If cheaper development raises the volume of software built (a Jevons effect), demand for the concentrated skill may rise while its supply pipeline narrows. That is consistent with the data, but not yet shown.
 
-## 7. Review is being dropped, not restructured
+**Step result:** the ability that conditions 2 and 3 rely on is not stable. It decays with delegation, and its supply pipeline is narrowing. "Someone can still read the code when needed" holds only if the skill is deliberately preserved.
 
-The weak form of claim A assumes review *moves* from every diff to specs, tests and sampling. Current practice shows something else. In vendor telemetry from about 22,000 developers, high-AI-adoption periods saw [N23]:
+### Verdict on claim A
 
-- median time in review **+441%**;
-- PRs merged with **no review at all +31%**;
-- bugs per developer +54%;
-- incidents per PR +243%.
+- **A-strong is not supported.** It removes the people that §2.2 (building and auditing instruments) and §2.3 (covering the residual) depend on, and §2.4 shows that a team that stops reading code loses the ability to start again. The strongest evidence against it is about humans, not agents.
+- **A-weak is supported as a design**, under the conditions the steps establish: instruments cover the outcomes that matter (§2.1), enforced standards and budgets are in place (§2.2), review becomes *structured* sampling rather than ad hoc skipping (§2.3), and code-reading skill is preserved (§2.4). Current practice (§2.3) mostly does not meet these conditions yet.
+
+---
+
+## 3. Claim B: can instruments certify a regeneration?
+
+Regenerating a project is cheaper than maintaining it only if something proves the regenerated version does what the old one did. That proof is an instrument: implementation-agnostic tests, per-file validation, review. Claim B is therefore a question about the cost of the instruments, not only of the generation.
+
+### 3.1 Without instruments, regeneration fails at scale; with them, it succeeds
+
+On repository modernisation, fully autonomous agents passed **91.3%** of tests on repositories under 10K LOC, but only **15.3%** above 50K LOC. The authors call this a "scaling collapse" [B3, preprint]. A JDK 8→17 migration benchmark found the best agent migrated **52.3%** of 228 projects, with reward hacking [N12].
 
 ```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
 xychart-beta
-    title "High- vs. low-AI-adoption periods (% change; vendor telemetry) [N23]"
-    x-axis ["Median time in review", "Incidents per PR", "Bugs per developer", "PRs merged with no review"]
-    y-axis "% change" 0 --> 500
-    bar [441.5, 242.7, 54, 31.3]
+    title "Unguided agents on repository-scale work (% success)"
+    x-axis ["RepoMod <10K LOC [B3]", "RepoMod >50K LOC [B3]", "JDK 8→17, best agent [N12]"]
+    y-axis "% success" 0 --> 100
+    bar [91.3, 15.3, 52.3]
 ```
 
-In 2025, high-adoption teams merged 98% more PRs with 154% larger PRs and 91% longer review time, and showed no company-level gain [N24].
+Only the two RepoMod size bands reported in the paper's abstract are shown.
 
-Review effectiveness also falls with size. A vendor study recommends reviewing 200–400 LOC in 60–90 minutes [N50].
+Every documented large-scale success had a heavy harness of instruments:
+- **Google:** about 80% of changes in one migration were AI-authored, and engineers estimated about 50% time saved. Changes were kept only if they built and passed tests, with expert review, and **review capacity was the bottleneck** [N3].
+- **Airbnb:** migrated about 3,500 test files in roughly 6 weeks, against a 1.5-year manual estimate. They used per-file validation and retry loops, and **finished the last files by hand** [N4].
 
-**What this supports:** reviewing less than every diff is viable only as **structured sampling** (randomised, logged, with conditions), not as ad hoc skipping. Changes under human review should stay small.
+In both cases the instruments decided what was accepted, and people who read code covered the residual (§2.2, §2.3).
 
-## 8. Why source languages persist (claim C)
+**The boundary is moving.** METR's measure of task length that agents complete at 50% success doubled about every 7 months (2019–2025), and about every 89 days since 2024 [N1]. On the harder SWE-Bench Pro, top public scores rose from about 23% at release to 52–62% within a year. Private code scores lower, and scores on the easier SWE-bench Verified exceed 70% [N6]. These figures are at 50% reliability; 80% horizons are much shorter.
 
-1. **LLMs do worse on IR than on source code for the same task.**
-   - *Summarisation:* with the same models, scores fall from 0.167 (METEOR) on source to 0.066 on assembly and 0.052 on IR [N26].
-   - *Optimisation:* within one multi-level optimisation system, the source-level agent produced 84.8% correct samples against 41.0% for the IR-level agent [N27]. This is indicative, not a controlled comparison.
+```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
+xychart-beta
+    title "METR: doubling time of the 50% task horizon (days, lower = faster) [N1]"
+    x-axis ["Fit on 2019–2025 (≈196)", "Fit since 2023", "Fit since 2024"]
+    y-axis "Days to double" 0 --> 220
+    bar [196, 130.8, 88.6]
+```
 
-   ```mermaid
-   xychart-beta
-       title "Binary code summarisation quality by input representation (METEOR) [N26]"
-       x-axis ["Source", "Decompiled + symbols", "Decompiled, stripped", "Assembly", "IR", "Raw bytes"]
-       y-axis "METEOR (higher = better)" 0 --> 0.2
-       bar [0.167, 0.141, 0.102, 0.066, 0.052, 0.023]
-   ```
+```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
+xychart-beta
+    title "SWE-Bench Pro, public set: top score (%) [N6]"
+    x-axis ["At release (Sep 2025, GPT-5)", "2026 public leaderboard (top entry, ±3.1)"]
+    y-axis "% resolved" 0 --> 100
+    bar [23.3, 61.5]
+```
 
-   ```mermaid
-   xychart-beta
-       title "Correct samples per level within one multi-level system (%) [N27]"
-       x-axis ["Source", "Assembly", "IR"]
-       y-axis "% correct" 0 --> 100
-       bar [84.8, 57.4, 41.0]
-   ```
-   - *IR reasoning:* six general-purpose LLMs parse IR syntax but struggle with control flow, loops and execution reasoning [C5].
-   - *Specialised training:* Meta's LLM Compiler was trained on 546B tokens of LLVM-IR and assembly. It still round-trips only **45%** of disassembled functions and reproduces **14%** exactly [B10].
-2. **Names and types carry meaning that models use.**
-   - *Names:* hiding identifier names drops GPT-4o's class-summary accuracy from 87.3 to 58.7 [N30].
+At release, the commercial (private) set's top score was 17.8%. No current commercial-set score is published. The 2026 leaderboard is undated and uses a different agent harness (mini-swe-agent), so the two bars are not a strict like-for-like comparison.
 
-   ```mermaid
-   xychart-beta
-       title "GPT-4o class-level summary accuracy (ClassEval) [N30]"
-       x-axis ["Original identifiers", "Identifiers obfuscated"]
-       y-axis "Accuracy" 0 --> 100
-       bar [87.3, 58.7]
-   ```
-   - *Types:* 94% of compile errors in LLM-generated TypeScript are type errors, and type-constrained generation cuts them by 52–75% [N31].
-   - *Adoption:* TypeScript became the most used language on GitHub in August 2025, a shift GitHub correlates with AI-assisted coding [N25].
-3. **Precision is the point.** Dijkstra warned that natural language makes it easy to state things "the nonsense of which is not obvious" [N11]. Ambiguity measurably costs correctness: asking clarifying questions raises GPT-4's pass rate from 68.0% to 75.8% [N32]. Natural-language intent becomes reliable once tests formalise it: approving generated tests adds 46 pp pass@1 within five interactions [N33].
+**Step result:** generation alone does not certify a regeneration; instruments plus review do. Thresholds such as "50K LOC" are snapshots, not constants.
+
+### 3.2 The instruments are an ongoing cost
+
+Regeneration is not a one-off. What gets built on agent-written code has to be maintained, and the harness has to be maintained with it.
+
+- Agents resolve up to **13.1%** fewer tasks when building on agent-written code than on human-written code. Behavioural signals explained the gap (input validation, error handling, code size); traditional maintainability metrics did not [B7].
+- Building on an agent's own history lowered later resolution by **5.6 pp** on average, and by 14.0 pp when all prior tests had to pass (1,996 paired events, preprint) [B9].
+- **83.21%** of commits to AI-generated files were made by humans (1,284 of 1,543) [B8]. This measures current practice, not capability.
+
+```mermaid
+pie showData
+    title "Who commits to AI-generated files (1,543 commits) [B8]"
+    "Humans" : 1284
+    "Agents" : 259
+```
+
+- Context files, part of the harness, do not improve success by default and add over 20% to inference cost [N15]. They are edited often, mostly by small additions [N14].
+
+**Step result:** the harness is a maintained product, not a setup step. Its cost belongs on the regeneration side of the comparison.
+
+### 3.3 Nobody has measured the full comparison
+
+No study compares the full cost of guided regeneration (generation, instruments, review, harness upkeep) with the cost of maintenance.
+
+### Verdict on claim B
+
+- **B-strong is not supported today.** Unguided agents collapse at scale (§3.1), building on agent code compounds problems (§3.2), and there is no full-cost evidence that regeneration wins (§3.3). It stays open as a trend, because capability is rising fast (§3.1).
+- **B-weak is supported with a harness.** Guided migrations with strong instruments save large amounts of time (§3.1), but the harness is an ongoing cost (§3.2).
+
+---
+
+## 4. Claim C: can instruments work without source code?
+
+If agents emitted IR directly, every instrument that reads code would have to read IR instead: human reviewers, models doing review and repair, and the specs that state intent. The question is whether they work as well.
+
+### 4.1 Models reason worse on IR than on source
+
+- *Summarisation:* with the same models, scores fall from 0.167 (METEOR) on source to 0.066 on assembly and 0.052 on IR [N26].
+- *Optimisation:* within one multi-level optimisation system, the source-level agent produced 84.8% correct samples against 41.0% for the IR-level agent [N27]. This is indicative, not a controlled comparison.
+
+```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
+xychart-beta
+    title "Binary code summarisation quality by input representation (METEOR) [N26]"
+    x-axis ["Source", "Decompiled + symbols", "Decompiled, stripped", "Assembly", "IR", "Raw bytes"]
+    y-axis "METEOR (higher = better)" 0 --> 0.2
+    bar [0.167, 0.141, 0.102, 0.066, 0.052, 0.023]
+```
+
+```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
+xychart-beta
+    title "Correct samples per level within one multi-level system (%) [N27]"
+    x-axis ["Source", "Assembly", "IR"]
+    y-axis "% correct" 0 --> 100
+    bar [84.8, 57.4, 41.0]
+```
+
+- *IR reasoning:* six general-purpose LLMs parse IR syntax but struggle with control flow, loops and execution reasoning [C5].
+- *Specialised training:* Meta's LLM Compiler was trained on 546B tokens of LLVM-IR and assembly. It still round-trips only **45%** of disassembled functions and reproduces **14%** exactly [B10].
+
+### 4.2 Names and types are instruments too
+
+Source carries meaning that models and reviewers use, and that IR drops.
+- *Names:* hiding identifier names drops GPT-4o's class-summary accuracy from 87.3 to 58.7 [N30].
+
+```mermaid
+%%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
+xychart-beta
+    title "GPT-4o class-level summary accuracy (ClassEval) [N30]"
+    x-axis ["Original identifiers", "Identifiers obfuscated"]
+    y-axis "Accuracy" 0 --> 100
+    bar [87.3, 58.7]
+```
+- *Types:* 94% of compile errors in LLM-generated TypeScript are type errors, and type-constrained generation cuts them by 52–75% [N31]. A type checker is an instrument that only works on source-level types.
+- *Adoption:* TypeScript became the most used language on GitHub in August 2025, a shift GitHub correlates with AI-assisted coding [N25]. Practice is moving toward *more* checkable source, not less.
 
 The steelman for C is real:
 - IR is learnable with specialised training [B10].
 - IR improves source-code models as a training signal [N29].
-- IR transformations can be verified formally: Alive2 found 47 LLVM bugs and is already used to verify LLM-generated optimisations [N9].
+- IR transformations can be verified formally: Alive2 found 47 LLVM bugs and is already used to verify LLM-generated optimisations [N9]. Where such an oracle exists, it is a stronger instrument than review. But it covers a narrow domain; most business software has no equivalent.
 
-But **dropping source solves no problem**. Source plus compilers, and portable IRs (JVM bytecode, CIL, WebAssembly), already give platform independence. The real question is where intent lives. If a spec is precise enough to generate IR from, the spec has become the programming language.
+### 4.3 Precision has to live somewhere
 
-## 9. Where the marginal gain lives
+Dijkstra warned that natural language makes it easy to state things "the nonsense of which is not obvious" [N11]. Ambiguity measurably costs correctness: asking clarifying questions raises GPT-4's pass rate from 68.0% to 75.8% [N32]. Intent becomes reliable once tests formalise it [N33]. If a spec is precise enough to generate IR from, the spec has become the programming language.
 
-Where should autonomy stop? No measured map of domains answers that, so this brief uses a decision rule instead. The rule is this brief's own framework, built on measurable inputs.
+### Verdict on claim C
+
+- **C-strong is not supported, and is unlikely for lack of motive.** Dropping source weakens the instruments (§4.1, §4.2) and solves no problem: source plus compilers, and portable IRs (JVM bytecode, CIL, WebAssembly), already give platform independence. The real question is where intent lives (§4.3).
+- **C-weak is supported but secondary.** Source as a generated layer nobody edits already exists for some layers. It reduces to A-weak plus B-weak: trusted through instruments, regenerated under a harness.
+
+---
+
+## 5. Where developer effort pays: instruments first
+
+Sections 2–4 show that everything depends on the instruments. The practical question is where to spend the next unit of effort. No measured map of domains answers that, so this brief uses a decision rule instead. The rule is this brief's own framework, built on measurable inputs.
 
 **The value of the next unit of effort is the expected loss it removes:**
 
 > value of next unit = reduction in P(bug escapes) × impact of that bug
 
-For each class of change, compare the expected loss removed per unit of cost by **more tokens** with that removed by **more developer effort** (guiding, reviewing, correcting). Spend on whichever is higher, until they are equal (the equi-marginal principle).
+For each class of change, compare the expected loss removed per unit of cost by **more tokens** with that removed by **more developer effort** (guiding, building instruments, reviewing, correcting). Spend on whichever is higher, until they are equal (the equi-marginal principle).
 
 ```mermaid
 flowchart TD
-    A["Change to make"] --> B{"Impact of an escaped bug?"}
-    B -- "Low" --> C{"Binding constraints?<br/>(performance, memory,<br/>security, maintainability)"}
+    A["Change to make"] --> B{{"Impact of an escaped bug?"}}
+    B -- "Low" --> C{{"Binding constraints?<br/>(performance, memory,<br/>security, maintainability)"}}
     B -- "High" --> E["Next unit → developer effort<br/>(spec, verifier, reading the code)"]
     C -- "No" --> D["Next unit → tokens<br/>Outcome-only execution,<br/>enforced standards, sampled review"]
     C -- "Yes" --> E
-    D --> F{"Token returns flattening?<br/>(no verifier, rising cost)"}
+    D --> F{{"Token returns flattening?<br/>(no verifier, rising cost)"}}
     F -- "Yes" --> E
     F -- "No" --> D
 ```
@@ -313,13 +416,14 @@ This diagram illustrates the rule. It is a framework, not a measured result.
 
 Three observations shape the rule:
 
-- **Returns on tokens diminish.**
+- **Returns on tokens diminish, and the verifier sets the ceiling.**
   - Agent accuracy often peaks at intermediate cost and saturates above it, and repeated runs of the same task vary up to 30× in tokens [N51].
   - Simple agents sit on the cost–accuracy frontier: 93.2% for $2.45 against 88.0% for $134.50 on HumanEval [N48].
   - Sampling 250 times raises the share of tasks with *some* correct solution from 15.9% to 56%, but turning that into fixes needs a **verifier** [N49].
-  - So developer effort pays most when spent on **specs and verifiers**, not on re-prompting.
+  - So developer effort pays most when spent on **instruments** (specs and verifiers), not on re-prompting.
 
   ```mermaid
+  %%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
   xychart-beta
       title "HumanEval: accuracy (%) of agent designs, labelled with total cost [N48]"
       x-axis ["Warming $2.45", "Retry $2.51", "Reflexion $3.90", "LDB $6.36", "LATS $134.50"]
@@ -328,6 +432,7 @@ Three observations shape the rule:
   ```
 
   ```mermaid
+  %%{init: {"xyChart": {"width": 1000, "height": 450}}}%%
   xychart-beta
       title "SWE-bench Lite: share of tasks with at least one correct sample (%) [N49]"
       x-axis ["1 sample", "250 samples"]
@@ -337,7 +442,9 @@ Three observations shape the rule:
 - **Returns on review diminish too**, with diff size and fatigue [N50, A4-alt2]. More human review is not automatically the better unit.
 - **The switch point moves** with impact, constraints, model capability and token price. Cheaper tokens lower the cost side but do not change the impact side.
 
-## 10. The path to earned autonomy
+## 6. The path to earned autonomy
+
+If trust comes from instruments, autonomy can grow only as fast as instrument coverage and its track record. Each phase below is a level of coverage, entered by evidence, not by calendar.
 
 ```mermaid
 flowchart TD
@@ -355,25 +462,25 @@ flowchart TD
     P2 -. "Trust LOST →<br/>back to P1" .-> P1
 ```
 
-Each phase is entered by evidence, not by calendar. The practices that make it work:
+The practices that make it work, each tied to the step it answers:
 
-1. **Human review is the default.** A class of change moves to **structured sampling** only when its impact is low, verifiers cover the outcomes that matter, enforced standards pass, and it has a record of zero escaped defects. Changes under human review stay small.
-2. **Rate changes by impact and binding constraints, not size.** The rating itself is earned autonomy:
+1. **Human review is the default** (§2.3). A class of change moves to **structured sampling** only when its impact is low, verifiers cover the outcomes that matter, enforced standards pass, and it has a record of zero escaped defects. Changes under human review stay small.
+2. **Rate changes by impact and binding constraints, not size** (§5). The rating itself is earned autonomy:
    - first the agent proposes and a human confirms, defaulting to *high* when unsure;
    - then a rubric plus deterministic change signals;
    - then minimum ratings per module, enforced by a hook;
    - finally automatic rating, checked against outcomes.
 
    The agent may always raise a rating; lowering it needs evidence or a human. The rater is independent of the implementing agent, because agents game their own checks [N12]. Change-level risk prediction is an established technique [N52].
-3. **Verifier first.** Tests, budgets and checkers are written or approved before the agent runs, and are protected from agent edits.
-4. **Constraint budgets** for performance, memory and security run in CI. A tight or breached budget means a human reads the generated code.
-5. **Large migrations only as guided migrations:** implementation-agnostic tests first, in batches, each through review.
-6. **The harness is a maintained product** (context files, skills, hooks, settings, verifiers), with an owner and a refinement cadence.
+3. **Verifier first** (§2.1). Tests, budgets and checkers are written or approved before the agent runs, and are protected from agent edits.
+4. **Constraint budgets** for performance, memory and security run in CI (§2.2). A tight or breached budget means a human reads the generated code.
+5. **Large migrations only as guided migrations** (§3.1): implementation-agnostic tests first, in batches, each through review.
+6. **The harness is a maintained product** (§3.2): context files, skills, hooks, settings and verifiers, with an owner and a refinement cadence.
    - Context files do not improve success by default and add over 20% to inference cost [N15].
    - They grow mostly by small additions [N14].
    - So developers **refine the harness while prompting**: when the agent's output reveals a missing, stale, conflicting or ineffective instruction, they fix it in the same change.
-7. **Preserve code-reading skill.** Use AI for inquiry, not only delegation, while learning [N2]. Treat skill atrophy and the narrowing junior pipeline as named risks.
-8. **Measure review health and agent cost:** time in review, share of unreviewed merges, change size, escaped defects, and cost per task and its variance.
+7. **Preserve code-reading skill** (§2.4). Use AI for inquiry, not only delegation, while learning [N2]. Treat skill atrophy and the narrowing junior pipeline as named risks.
+8. **Measure review health and agent cost** (§2.3, §5): time in review, share of unreviewed merges, change size, escaped defects, and cost per task and its variance.
 9. **Re-measure every 6 months**, or earlier if any of these happen:
    - METR's time horizon doubles;
    - SWE-Bench Pro rises by more than 10 pp;
@@ -382,7 +489,18 @@ Each phase is entered by evidence, not by calendar. The practices that make it w
 
 Numeric thresholds above are starting values, not evidence-based.
 
-## 11. What the evidence does not show
+## 7. Why the verdicts follow
+
+| Claim | Verdict | Because | What would change it |
+|---|---|---|---|
+| **A-strong** | Not supported | Instruments need people who read code to build and audit them (§2.2); a residual remains that only review covers (§2.3); the skill decays when unused (§2.4) | Instruments that are reliably built and audited without human code reading, *and* escaped defects that stay flat as review is removed |
+| **A-weak** | Supported as a design, conditional | Instruments work where they cover the outcome (§2.1); structured sampling can cover the residual (§2.3); conditions: standards and budgets (§2.2), preserved skill (§2.4) | Sampled change classes showing more escaped defects than reviewed ones; or skill not preserved |
+| **B-strong** | Not supported today; open as a trend | Unguided agents collapse at scale (§3.1); building on agent code compounds (§3.2); no full-cost data (§3.3) | A full-cost study showing regeneration cheaper than maintenance for typical codebases; large-repo success at high reliability, not 50% |
+| **B-weak** | Supported with a harness | Guided migrations with strong instruments save large amounts of time (§3.1) | Evidence that harness upkeep (§3.2) costs more than it saves |
+| **C-strong** | Not supported; unlikely | Models and instruments work worse without source (§4.1, §4.2); no problem is solved by dropping it (§4.3) | Models reasoning as well on IR as on source, *and* a spec format replacing source as where intent lives |
+| **C-weak** | Supported but secondary | Generated layers already exist; reduces to A-weak + B-weak | — |
+
+## 8. What the evidence does not show
 
 The best case for the claims is strong and is acknowledged here:
 - capability is growing fast [N1, N6];
@@ -392,17 +510,19 @@ The best case for the claims is strong and is acknowledged here:
 - agent code is not universally worse [C1, C2];
 - adoption of agent configuration is already widespread [N35].
 
+Each of these strengthens the **instruments** side of the argument. None removes the need for people who build them and cover what they miss.
+
 What remains open:
 - **No cost data for claim B.** No study compares the full cost of guided regeneration with maintenance.
 - **No data on harness obsolescence** or on who maintains agent configuration.
 - **The Jevons effect on labour is unproven.** Total software postings are still below 2020 levels [N44].
-- **The marginal rule (§9) has no direct study.** Its inputs are measurable, but nobody has measured them together.
+- **The marginal rule (§5) has no direct study.** Its inputs are measurable, but nobody has measured them together.
 
-## 12. Conclusion
+## 9. Conclusion
 
-The claim that "you won't need to understand code in a few years" extrapolates from the cases where agents do well and ignores those where they fail. It also overlooks the evidence that matters most: what happens to people who stop reading code, and what happens to review when output grows. With that evidence, the conclusion is:
+The claim that "you won't need to understand code in a few years" treats outcomes as something you can simply look at. You can't. Outcomes are judged through instruments, and the instruments are code, built and audited by people who read code. They leave a residual that only review covers, and the skill to do that review fades when it isn't used. Agent capability is rising fast, and that makes the instruments more productive, but it does not remove the people behind them.
 
-> **Code understanding is not being eliminated, it is being concentrated.** Fewer people and fewer steps need it; where it is needed, the depth does not fall. Its job shifts from writing every line to designing the verifiers, deciding where constraints bind, diagnosing what verifiers miss, and judging whether the architecture will survive the next change.
+> **Code understanding is not being eliminated, it is being concentrated.** Fewer people and fewer steps need it; where it is needed, the depth does not fall. Its job shifts from writing every line to designing the instruments, deciding where constraints bind, diagnosing what the instruments miss, and judging whether the architecture will survive the next change.
 
 Autonomy is an output. The process that earns it, made of verifiers, standards, sandboxes, structured sampling and progressive trust, is the actual engineering work. And because the boundary moves, it is measured again, not argued once.
 
@@ -472,6 +592,14 @@ IDs match the references file.
 
 ## Changes
 
+**v1.1 (2026-11-18)**: restructured so that the evidence leads to the verdicts. No figures, sources or verdicts changed.
+
+- **New frame (§1):** outcomes are judged through instruments (tests, types, budgets, standards gates, checkers, sampled review), under three conditions: coverage, construction and residual. Each claim is restated as a question about the instruments.
+- **Evidence regrouped by claim:** claim A in four steps (§2.1–§2.4), claim B in three (§3.1–§3.3), claim C in three (§4.1–§4.3), each ending with a step result and a verdict.
+- **Practices tied to steps:** each earned-autonomy practice (§6) names the step it answers.
+- **New verdict trace (§7):** each verdict, its supporting steps, and what would change it.
+- **Conclusion** restated as the chain of steps.
+
 **v1.0 (2026-11-13)**, replacing the first version (2026-11-07). The full history, with the review behind each change, is in the accompanying discussion.
 
 - **Sources corrected:**
@@ -485,15 +613,10 @@ IDs match the references file.
   - the domain quadrant and viability table;
   - the claim that "five independent research programs converge".
 - **Counter-evidence added and discussed:** C1, C2, DORA 2024 and GitClear's selection finding.
-- **New sections:**
-  - the claims under test, with verdicts;
-  - the human side (§6);
-  - review being dropped (§7);
-  - the marginal decision rule (§9);
-  - what the evidence does not show (§11).
+- **New sections:** the claims under test, the human side, review being dropped, the marginal decision rule, and what the evidence does not show.
 - **Earned-autonomy path extended:** incremental risk rating, structured sampling, verifier first, constraint budgets, and harness ownership and refinement.
 - **Charts redrawn:** only figures verified on primary sources are used.
 
 ---
 
-*Version v1.0, 2026-11-13.*
+*Version v1.1, 2026-11-18.*
